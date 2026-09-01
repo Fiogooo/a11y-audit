@@ -1,0 +1,19 @@
+# Exemplo de configuração. Copie, troque as URLs e rode:
+#   a11y-audit run --config sites.yaml --label baseline
+
+concurrency: 4          # páginas auditadas em paralelo
+delay_ms: 500           # intervalo entre requisições, por educação com o servidor
+timeout_ms: 30000       # limite para carregar cada página
+respect_robots: true    # não audita o que o robots.txt desautoriza
+standard: wcag21aa      # wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa
+min_impact: null        # minor, moderate, serious, critical — ou null para todos
+
+ignored_rules:
+  - region              # boa prática, não é critério WCAG
+
+sites:
+  - name: Exemplo Institucional
+    urls:
+      - https://exemplo.gov.br/
+      - https://exemplo.gov.br/contato
+      - https://exemplo.gov.br/transparencia

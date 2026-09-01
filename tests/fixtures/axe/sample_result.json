@@ -1,0 +1,51 @@
+{
+  "testEngine": { "name": "axe-core", "version": "4.10.2" },
+  "url": "http://localhost:8000/sem_alt.html",
+  "violations": [
+    {
+      "id": "image-alt",
+      "impact": "critical",
+      "description": "Elementos de imagem precisam de texto alternativo",
+      "help": "Images must have alternate text",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/image-alt",
+      "tags": ["cat.text-alternatives", "wcag2a", "wcag111", "section508"],
+      "nodes": [
+        { "target": ["img"], "html": "<img src=\"grafico.png\" width=\"120\">" },
+        { "target": [".banner", "img.logo"], "html": "<img class=\"logo\" src=\"logo.svg\">" }
+      ]
+    },
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "description": "Elementos precisam de contraste suficiente",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/color-contrast",
+      "tags": ["cat.color", "wcag2aa", "wcag143"],
+      "nodes": [{ "target": ["p"], "html": "<p style=\"color:#d0d0d0\">Texto</p>" }]
+    },
+    {
+      "id": "region",
+      "impact": "moderate",
+      "description": "Todo conteúdo deve estar contido em marcos",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/region",
+      "tags": ["cat.keyboard", "best-practice"],
+      "nodes": [{ "target": ["h1"], "html": "<h1>Título</h1>" }]
+    },
+    {
+      "id": "frame-title",
+      "impact": "serious",
+      "description": "Frames precisam de título",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.10/frame-title",
+      "tags": ["cat.text-alternatives", "wcag2a", "wcag241"],
+      "nodes": [{ "target": [["#mapa"], ["iframe"]], "html": "<iframe src=\"mapa.html\">" }]
+    }
+  ],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": [{ "target": ["span"], "html": "<span>Texto sobre imagem</span>" }]
+    }
+  ],
+  "passes": [],
+  "inapplicable": []
+}

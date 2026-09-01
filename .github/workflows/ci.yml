@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    container:
+      # Mesma imagem do Dockerfile: o CI roda no mesmo ambiente que o usuário.
+      image: mcr.microsoft.com/playwright/python:v1.56.0-jammy
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar dependências
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check src tests
+
+      - name: Testes
+        run: pytest -v

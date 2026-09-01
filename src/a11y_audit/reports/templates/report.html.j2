@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatório de acessibilidade — execução {{ run.id }}</title>
+<style>
+  :root {
+    --tinta: #1a1a1a; --suave: #5c5c5c; --linha: #d8d8d8; --fundo: #fbfbfa;
+    --critical: #a4243b; --serious: #c3671b; --moderate: #8a7415; --minor: #4a6572;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem 1.25rem; background: var(--fundo); color: var(--tinta);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 62rem; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.15rem; margin: 2.5rem 0 .75rem; padding-bottom: .3rem;
+       border-bottom: 1px solid var(--linha); }
+  .meta { color: var(--suave); font-size: .875rem; margin-bottom: 1.5rem; }
+  .cards { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .card { flex: 1 1 8rem; background: #fff; border: 1px solid var(--linha);
+          border-radius: 6px; padding: .85rem 1rem; }
+  .card .n { font-size: 1.6rem; font-weight: 600; }
+  .card .l { color: var(--suave); font-size: .8rem; text-transform: uppercase;
+             letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; background: #fff; font-size: .9rem; }
+  th, td { text-align: left; padding: .55rem .7rem; border-bottom: 1px solid var(--linha);
+           vertical-align: top; }
+  th { background: #f2f2f0; font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82em;
+         background: #f0efec; padding: .1em .35em; border-radius: 3px;
+         word-break: break-all; }
+  .tag { display: inline-block; padding: .1rem .45rem; border-radius: 3px;
+         font-size: .72rem; font-weight: 600; text-transform: uppercase;
+         letter-spacing: .03em; color: #fff; }
+  .critical { background: var(--critical); } .serious { background: var(--serious); }
+  .moderate { background: var(--moderate); } .minor { background: var(--minor); }
+  details { background: #fff; border: 1px solid var(--linha); border-radius: 6px;
+            margin-bottom: .6rem; }
+  summary { padding: .7rem .9rem; cursor: pointer; font-weight: 500; }
+  details > div { padding: 0 .9rem .9rem; }
+  .aviso { background: #fff8e6; border: 1px solid #e8d9a8; border-radius: 6px;
+           padding: .9rem 1rem; font-size: .875rem; margin-top: 2.5rem; }
+  .erro { color: var(--critical); }
+  a { color: #1c5d8c; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Relatório de acessibilidade</h1>
+  <p class="meta">
+    Execução {{ run.id }}{% if run.label %} — {{ run.label }}{% endif %} ·
+    {{ run.started_at.strftime('%d/%m/%Y %H:%M') }} UTC ·
+    axe-core {{ run.axe_version or 'versão não registrada' }} ·
+    padrão configurado conforme <code>{{ run.config_hash[:8] }}</code>
+  </p>
+
+  <div class="cards">
+    <div class="card"><div class="n">{{ run.pages | length }}</div><div class="l">Páginas</div></div>
+    <div class="card"><div class="n">{{ total_violations }}</div><div class="l">Violações</div></div>
+    <div class="card"><div class="n">{{ summaries | length }}</div><div class="l">Sites</div></div>
+    <div class="card"><div class="n">{{ failed_pages | length }}</div><div class="l">Falhas de coleta</div></div>
+  </div>
+
+  {% if diff %}
+  <h2>Comparação com a execução anterior</h2>
+  <div class="cards">
+    <div class="card"><div class="n">{{ diff.new | length }}</div><div class="l">Novas</div></div>
+    <div class="card"><div class="n">{{ diff.fixed | length }}</div><div class="l">Corrigidas</div></div>
+    <div class="card"><div class="n">{{ diff.persisting | length }}</div><div class="l">Persistentes</div></div>
+  </div>
+  {% if diff.new %}
+  <table>
+    <thead><tr><th>Impacto</th><th>Regra</th><th>URL</th><th>Seletor</th></tr></thead>
+    <tbody>
+    {% for v in diff.new[:50] %}
+      <tr>
+        <td><span class="tag {{ v.impact }}">{{ v.impact }}</span></td>
+        <td><code>{{ v.rule_id }}</code></td>
+        <td>{{ v.url }}</td>
+        <td><code>{{ v.selector }}</code></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% endif %}
+
+  <h2>Resumo por site</h2>
+  <table>
+    <thead>
+      <tr><th>Site</th><th class="num">Páginas</th><th class="num">Falhas</th>
+          <th class="num">Violações</th><th>Distribuição</th></tr>
+    </thead>
+    <tbody>
+    {% for s in summaries %}
+      <tr>
+        <td>{{ s.name }}</td>
+        <td class="num">{{ s.pages }}</td>
+        <td class="num">{{ s.failed_pages }}</td>
+        <td class="num">{{ s.violations }}</td>
+        <td>
+          {% for impacto, quantidade in s.by_impact.items() %}
+            <span class="tag {{ impacto }}">{{ impacto }} {{ quantidade }}</span>
+          {% endfor %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Regras mais violadas</h2>
+  <table>
+    <thead><tr><th>Regra</th><th>Impacto</th><th class="num">Ocorrências</th></tr></thead>
+    <tbody>
+    {% for regra, quantidade, impacto in top_rules %}
+      <tr>
+        <td><code>{{ regra }}</code></td>
+        <td><span class="tag {{ impacto }}">{{ impacto }}</span></td>
+        <td class="num">{{ quantidade }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Detalhamento por página</h2>
+  {% for page in pages %}
+  <details{% if loop.index <= 3 and page.violations %} open{% endif %}>
+    <summary>
+      {{ page.url }} —
+      {% if page.ok %}{{ page.violations | length }} violação(ões)
+      {% else %}<span class="erro">falhou</span>{% endif %}
+    </summary>
+    <div>
+      {% if not page.ok %}
+        <p class="erro">{{ page.error }}</p>
+      {% elif not page.violations %}
+        <p>Nenhuma violação detectada automaticamente nesta página.</p>
+      {% else %}
+      <table>
+        <thead>
+          <tr><th>Impacto</th><th>Regra</th><th>Critério</th><th>Elemento</th></tr>
+        </thead>
+        <tbody>
+        {% for v in page.violations %}
+          <tr>
+            <td><span class="tag {{ v.impact }}">{{ v.impact }}</span></td>
+            <td>
+              {% if v.help_url %}<a href="{{ v.help_url }}">{{ v.rule_id }}</a>
+              {% else %}{{ v.rule_id }}{% endif %}
+              <div style="color:var(--suave);font-size:.82em">{{ v.description }}</div>
+            </td>
+            <td><code>{{ v.wcag_tags }}</code></td>
+            <td><code>{{ v.selector }}</code></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </details>
+  {% endfor %}
+
+  <p class="aviso">
+    <strong>Sobre o alcance desta auditoria.</strong> Verificação automatizada cobre
+    entre 30% e 40% dos critérios da WCAG. Ausência de violações neste relatório
+    significa que nenhum problema <em>automatizável</em> foi detectado, não que a
+    página seja acessível. Critérios como adequação do texto alternativo, ordem lógica
+    de leitura, clareza de linguagem e navegação por teclado em fluxos completos
+    exigem avaliação manual e teste com pessoas usuárias de tecnologia assistiva.
+  </p>
+</main>
+</body>
+</html>

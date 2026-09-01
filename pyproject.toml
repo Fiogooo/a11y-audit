@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "a11y-audit"
+version = "0.1.0"
+description = "Auditoria de acessibilidade web em lote, com histórico e comparação entre execuções."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Diogo Aires" }]
+keywords = ["acessibilidade", "accessibility", "wcag", "axe-core", "auditoria"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+  "typer>=0.12",
+  "playwright>=1.44",
+  "sqlalchemy>=2.0",
+  "jinja2>=3.1",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.5"]
+
+[project.scripts]
+a11y-audit = "a11y_audit.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/a11y_audit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["browser: exige navegador do Playwright instalado"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.flake8-bugbear]
+# typer.Option/Argument como default é o padrão da biblioteca, não um bug.
+extend-immutable-calls = ["typer.Option", "typer.Argument"]
